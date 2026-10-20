@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deaths-warrant"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy==2.5.4",
+    "pandas==2.3.3",
+    "lifelines==0.30.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1"]

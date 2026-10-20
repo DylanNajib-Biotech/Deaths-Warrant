@@ -1,0 +1,12 @@
+# Python environment and caches
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_chache/
+
+# Data: Never commits it
+data/
+*.csv
+*.dat
+*.xpt
+*.XPT
