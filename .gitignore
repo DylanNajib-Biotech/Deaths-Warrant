@@ -2,7 +2,7 @@
 .venv/
 __pycache__/
 *.egg-info/
-.pytest_chache/
+.pytest_cache/
 
 # Data: Never commits it
 data/
@@ -10,3 +10,5 @@ data/
 *.dat
 *.xpt
 *.XPT
+
+explore.py
