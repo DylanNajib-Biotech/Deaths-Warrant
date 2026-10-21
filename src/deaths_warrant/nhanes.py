@@ -8,3 +8,19 @@ def load_lmf(path):
     """Read an NHANES public-use linked mortality dat. file."""
     return pd.read_fwf(path, colspecs=LMF_COLSPECS, names=LMF_NAMES,
         na_values=["", "."], dtype={"ucod_leading": "string"}) # Keep leading zeroes: "001", not "1"
+
+DEMO_COLUMNS = {
+    "SEQN": "seqn",
+    "RIAGENDR": "sex",
+    "RIDAGEYR": "age_years",
+    "WTMEC2YR": "weight_exam",
+    "SDMVPSU": "psu",
+    "SDMVSTRA": "stratum",
+}
+
+def load_demo(path):
+    """Read an NHANES demographics .xpt file, keeping only the columns we use."""
+    df = pd.read_sas(path, format="xport")
+    df = df[list(DEMO_COLUMNS)].rename(columns=DEMO_COLUMNS)
+    df["seqn"] = df["seqn"].astype(int) # .xpt stores IDs as decimals
+    return df
