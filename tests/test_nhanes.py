@@ -1,5 +1,6 @@
 from pathlib import Path; import pandas as pd; import pytest
 from deaths_warrant.nhanes import load_lmf, load_demo, to_standard
+from deaths_warrant.schema import validate
 
 LMF_PATH = Path("data/raw/NHANES_2013_2014_MORT_2019_PUBLIC.dat")
 DEMO_PATH = Path("data/raw/DEMO_H.xpt")
@@ -65,3 +66,13 @@ def test_to_standard_small_example():
     assert pd.isna(out["cause"].iloc[0])
     assert out["cause"].iloc[1] == "cancer"
     assert list(out["age_topcoded"]) == [False, False]
+
+@needs_data
+def test_real_data_passes_validation():
+    lmf = load_lmf(LMF_PATH)
+    demo = load_demo(DEMO_PATH)
+    df = lmf.merge(demo, on="seqn", how="inner", validate="one_to_one")
+    out = to_standard(df)
+    validate(out)
+    assert len(out) == 6100
+    assert (out["status"] == 1).sum() == 467
