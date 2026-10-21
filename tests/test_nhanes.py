@@ -1,4 +1,6 @@
-from pathlib import Path; import pytest; from deaths_warrant.nhanes import load_lmf, load_demo
+from pathlib import Path; import pandas as pd; import pytest
+from deaths_warrant.nhanes import load_lmf, load_demo, to_standard
+
 LMF_PATH = Path("data/raw/NHANES_2013_2014_MORT_2019_PUBLIC.dat")
 DEMO_PATH = Path("data/raw/DEMO_H.xpt")
 
@@ -45,3 +47,21 @@ def test_children_are_exactly_eligstat_2():
     is_child = df["age_years"] < 18
     is_eligstat_2 = df["eligstat"] == 2
     assert (is_child == is_eligstat_2).all()
+
+def test_to_standard_small_example():
+    merged = pd.DataFrame({
+        "seqn": [1, 2, 3],
+        "eligstat": [1, 1, 2],
+        "mortstat": [0, 1, None],
+        "ucod_leading": [None, "002", None],
+        "permth_int": [24, 6, None],
+        "age_years": [40, 70, 10],
+    })
+    out = to_standard(merged)
+    assert list(out["id"]) == [1, 2]
+    assert list(out["entry_age"]) == [40.5, 70.5]
+    assert list(out["exit_age"]) == [42.5, 71]
+    assert list(out["status"]) == [0, 1]
+    assert pd.isna(out["cause"].iloc[0])
+    assert out["cause"].iloc[1] == "cancer"
+    assert list(out["age_topcoded"]) == [False, False]

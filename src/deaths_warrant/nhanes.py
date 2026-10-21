@@ -13,7 +13,7 @@ DEMO_COLUMNS = {
     "SEQN": "seqn",
     "RIAGENDR": "sex",
     "RIDAGEYR": "age_years",
-    "WTMEC2YR": "weight_exam",
+    "WTINT2YR": "weight_interview",
     "SDMVPSU": "psu",
     "SDMVSTRA": "stratum",
 }
@@ -24,3 +24,24 @@ def load_demo(path):
     df = df[list(DEMO_COLUMNS)].rename(columns=DEMO_COLUMNS)
     df["seqn"] = df["seqn"].astype(int) # .xpt stores IDs as decimals
     return df
+
+
+CAUSE_NAMES = {
+    "001": "heart", "002": "cancer", "003": "chronic_lower_respiratory", "004": "accidents",
+    "005": "cerebrovascular", "006": "alzheimers", "007": "diabetes", "008": "influenza_pneumonia",
+    "009": "kidney", "010": "other"
+}
+
+def to_standard(merged):
+    """Convert merged NHANES (LMF + DEMO) into the standard format"""
+    df = merged[merged["eligstat"] == 1]
+    entry = df["age_years"] + 0.5
+    out = pd.DataFrame({
+        "id": df["seqn"],
+        "entry_age": entry,
+        "exit_age": entry + df["permth_int"] / 12,
+        "status": df["mortstat"].astype(int),
+        "cause": df["ucod_leading"].map(CAUSE_NAMES),
+        "age_topcoded": df["age_years"] == 80
+    })
+    return out
