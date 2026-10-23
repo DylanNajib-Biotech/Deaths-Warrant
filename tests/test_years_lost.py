@@ -78,3 +78,40 @@ def test_summarise_years_between_updates():
     assert summary["years_lost_by_cause"]["cif_1"] == pytest.approx(0.1875)
     assert summary["years_lost_by_cause"]["cif_2"] == pytest.approx(0.375)
     assert summed_years == pytest.approx(summed_window)
+
+def test_integrate_step_rejects_empty():
+    with pytest.raises(ValueError):
+        integrate_step([], [], 0, 1, 1)
+
+def test_integrate_step_rejects_mismatched_lengths():
+    with pytest.raises(ValueError):
+        integrate_step([1, 2], [0.8], 0, 2, 1)
+
+def test_integrate_step_rejects_invalid_interval():
+    with pytest.raises(ValueError):
+        integrate_step([1, 2], [0.8, 0.6], 1, 1, 1)
+
+def test_integrate_step_rejects_extrapolation():
+    with pytest.raises(ValueError):
+        integrate_step([1, 2], [0.8, 0.6], 0, 3, 1)
+
+def test_summarise_years_rejects_zero_survival():
+    table = aalen_johansen([1, 2, 3], [1, 1, 1])
+    with pytest.raises(ValueError, match = "Cannot condition"):
+        summarise_years(table, 3, 4)
+
+def test_summarise_years_all_censored():
+    table = aalen_johansen([1, 2, 3], [0, 0, 0])
+    summary = summarise_years(table, 0, 3)
+    assert summary["years_lived"] == pytest.approx(3.0)
+    assert summary["years_lost_by_cause"] == {}
+
+def test_summarise_years_with_age_and_entry():
+    table =aalen_johansen([52, 54, 55], [1, 2, 0], [50, 50, 53])
+    summary = summarise_years(table, 52, 55)
+    summed_window = summary["tau"] - summary["start"]
+    summed_years = summary["years_lived"] + summary["years_lost_by_cause"]["cif_1"] + summary["years_lost_by_cause"]["cif_2"]
+    assert summary["years_lived"] == pytest.approx(2.5)
+    assert summary["years_lost_by_cause"]["cif_1"] == pytest.approx(0.0)
+    assert summary["years_lost_by_cause"]["cif_2"] == pytest.approx(0.5)
+    assert summed_years == pytest.approx(summed_window)
