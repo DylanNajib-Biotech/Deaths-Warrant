@@ -48,3 +48,10 @@ def test_aalen_johansen_cifs_match_km():
     total = table["cif_1"] + table["cif_2"]
     km_subtraction = (1 - km_table["survival"]).tolist()
     assert total.tolist() == pytest.approx(km_subtraction)
+
+def test_aalen_johansen_delayed_entry():
+    table = aalen_johansen([2, 4, 5], [1, 2, 0], [0, 0, 3])
+    assert table["time"].tolist() == [2, 4, 5]
+    assert table["survival"].tolist() == pytest.approx([0.5, 0.25, 0.25])
+    assert table["cif_1"].tolist() == pytest.approx([0.5, 0.5, 0.5])
+    assert table["cif_2"].tolist() == pytest.approx([0.0, 0.25, 0.25])

@@ -31,3 +31,38 @@ def test_Kaplan_meier_unsorted():
     table = kaplan_meier([4, 2, 1, 3, 2], [0, 1, 1, 1, 0])
     assert table["time"].tolist() == [1, 2, 3, 4]
     assert table["survival"].tolist() == pytest.approx([0.8, 0.6, 0.3, 0.3])
+
+def test_event_table_delayed_entry():
+    table = event_table([2, 4, 5], [1, 1, 0], [0, 0, 3])
+    assert table["time"].tolist() == [2, 4, 5]
+    assert table["at_risk"].tolist() == [2, 2, 1]
+    assert table["deaths"].tolist() == [1, 1, 0]
+
+def test_kaplan_meier_delayed_entry():
+    table = kaplan_meier([2, 4, 5], [1, 1, 0], [0, 0, 3])
+    assert table["time"].tolist() == [2, 4, 5]
+    assert table["survival"].tolist() == pytest.approx([0.5, 0.25, 0.25])
+
+def test_kaplan_meier_delayed_entry_matches_lifelines():
+    table = kaplan_meier([2, 4, 5], [1, 1, 0], [0, 0, 3])
+    reference = KaplanMeierFitter().fit([2, 4, 5], event_observed = [1, 1, 0], entry = [0, 0, 3])
+    expected = reference.predict(table["time"]).tolist()
+    assert table["survival"].tolist() == pytest.approx(expected)
+
+def test_event_table_rejects_mismatched_events():
+    with pytest.raises(ValueError):
+        event_table([2, 4], [1])
+
+def test_event_table_rejects_mismatched_entry():
+    with pytest.raises(ValueError):
+        event_table([2, 4], [1, 0], [0])
+
+def test_event_table_rejects_entry_at_or_after_exit():
+    with pytest.raises(ValueError):
+        event_table([2], [1], [2])
+    with pytest.raises(ValueError):
+        event_table([2], [1], [3])
+
+def test_event_table_entry_at_death_time():
+    table = event_table([2, 4, 5], [1, 1, 0], [0, 0, 2])
+    assert table["at_risk"].tolist() == [2, 2, 1]

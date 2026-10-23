@@ -1,13 +1,13 @@
 from deaths_warrant.km import event_table; import pandas as pd
 
-def aalen_johansen(times, causes):
+def aalen_johansen(times, causes, entry=None):
     events = []
     for cause in causes:
         if cause == 0:
             events.append(0)
         else:
             events.append(1)
-    table = event_table(times, events)
+    table = event_table(times, events, entry)
     cause_codes = []
     for cause in sorted(set(causes)):
         if cause != 0:
