@@ -44,4 +44,10 @@ def to_standard(merged):
         "cause": df["ucod_leading"].map(CAUSE_NAMES),
         "age_topcoded": df["age_years"] == 80
     })
+    if "weight_interview" in df.columns:
+        out["weight"] = df["weight_interview"]
+    if "psu" in df.columns:
+        out["psu"] = df["psu"]
+    if "stratum" in df.columns:
+        out["stratum"] = df["stratum"]
     return out
