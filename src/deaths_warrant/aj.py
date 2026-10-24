@@ -1,13 +1,15 @@
 from deaths_warrant.km import event_table; import pandas as pd
 
-def aalen_johansen(times, causes, entry=None):
+def aalen_johansen(times, causes, entry=None, weights=None):
     events = []
     for cause in causes:
         if cause == 0:
             events.append(0)
         else:
             events.append(1)
-    table = event_table(times, events, entry)
+    if weights is None:
+        weights = [1.0] * len(times)
+    table = event_table(times, events, entry, weights=weights)
     cause_codes = []
     for cause in sorted(set(causes)):
         if cause != 0:
@@ -19,10 +21,10 @@ def aalen_johansen(times, causes, entry=None):
     rows = []
     for row in table.itertuples(index=False):
         for cause in cause_codes:
-            deaths_from_cause = 0
-            for duration, observed_cause in zip(times, causes):
+            deaths_from_cause = 0.0
+            for duration, observed_cause, weight in zip(times, causes, weights):
                 if duration == row.time and observed_cause == cause:
-                    deaths_from_cause += 1
+                    deaths_from_cause += weight
             cif[cause] += survival * deaths_from_cause / row.at_risk
         survival *= 1 - row.deaths / row.at_risk
         result = {"time": row.time, "survival": survival}

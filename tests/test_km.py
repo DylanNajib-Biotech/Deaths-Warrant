@@ -66,3 +66,27 @@ def test_event_table_rejects_entry_at_or_after_exit():
 def test_event_table_entry_at_death_time():
     table = event_table([2, 4, 5], [1, 1, 0], [0, 0, 2])
     assert table["at_risk"].tolist() == [2, 2, 1]
+
+def test_event_table_weighted():
+    table = event_table([1, 2, 3], [1, 1, 0], weights = [2, 1, 3])
+    assert table["time"].tolist() == [1, 2, 3]
+    assert table["at_risk"].tolist() == pytest.approx([6.0, 4.0, 3.0])
+    assert table["deaths"].tolist() == pytest.approx([2.0, 1.0, 0.0])
+
+def test_kaplan_meier_weighted_matches_lifelines():
+    table = kaplan_meier([1, 2, 3], [1, 1, 0], weights = [2, 1, 3])
+    reference = KaplanMeierFitter().fit([1, 2, 3], event_observed = [1, 1, 0], weights = [2, 1, 3])
+    expected = reference.predict(table["time"]).tolist()
+    assert table["survival"].tolist() == pytest.approx(expected)
+
+def test_event_table_rejects_mismatched_weights():
+    with pytest.raises(ValueError):
+        event_table([1, 2], [1, 0], weights = [1])
+
+@pytest.mark.parametrize(
+        "bad_weight",
+        [0, -1, float("nan"), float("inf"), -float("inf")],
+)
+def test_event_table_rejects_invalid_weight(bad_weight):
+    with pytest.raises(ValueError):
+        event_table([1], [1], weights = [bad_weight])

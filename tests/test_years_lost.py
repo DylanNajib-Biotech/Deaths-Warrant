@@ -115,3 +115,15 @@ def test_summarise_years_with_age_and_entry():
     assert summary["years_lost_by_cause"]["cif_1"] == pytest.approx(0.0)
     assert summary["years_lost_by_cause"]["cif_2"] == pytest.approx(0.5)
     assert summed_years == pytest.approx(summed_window)
+
+def test_summarise_years_weighted():
+    table_1 = aalen_johansen([1, 2, 3], [1, 2, 0], weights = [2, 1, 3])
+    summary = summarise_years(table_1, 0, 3)
+    summed_years = summary["years_lived"] + summary["years_lost_by_cause"]["cif_1"] + summary["years_lost_by_cause"]["cif_2"]
+    assert summary["years_lived"] == pytest.approx(13/6)
+    assert summary["years_lost_by_cause"]["cif_1"] == pytest.approx(2/3)
+    assert summary["years_lost_by_cause"]["cif_2"] == pytest.approx(1/6)
+    assert summed_years == pytest.approx(3.0)
+    table_2 = aalen_johansen([1, 2, 3], [1, 2, 0])
+    summary = summarise_years(table_2, 0, 3)
+    assert summary["years_lived"] == pytest.approx(2.0)

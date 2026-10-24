@@ -76,3 +76,20 @@ def test_real_data_passes_validation():
     validate(out)
     assert len(out) == 6100
     assert (out["status"] == 1).sum() == 467
+
+def test_to_standard_preserves_survey_fields():
+    merged = pd.DataFrame({
+        "seqn": [1, 2, 3],
+        "eligstat": [1, 1, 2],
+        "mortstat": [0, 1, None],
+        "ucod_leading": [None, "002", None],
+        "permth_int": [24, 6, None],
+        "age_years": [40, 70, 10],
+        "weight_interview": [2.0, 3.0, 4.0],
+        "psu": [1, 2, 1],
+        "stratum": [10, 10, 10]
+        })
+    out = to_standard(merged)
+    assert list(out["weight"]) == [2.0, 3.0]
+    assert list(out["psu"]) == [1, 2]
+    assert list(out["stratum"]) == [10, 10]

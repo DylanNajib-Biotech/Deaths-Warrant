@@ -1,27 +1,32 @@
-import pandas as pd
+from math import isfinite; import pandas as pd
 
-def event_table(times, events, entry=None):
+def event_table(times, events, entry=None, weights=None):
     rows = []
     if entry is None:
         entry = [0] * len(times)
-    if not (len(times) == len(events) == len(entry)):
-        raise ValueError("Lengths of times, events and entry must be the same")
+    if weights is None:
+        weights = [1.0] * len(times)
+    if not (len(times) == len(events) == len(entry) == len(weights)):
+        raise ValueError("Lengths of times, events, entry and weights must be the same")
+    for weight in weights:
+        if not (isfinite(weight) and weight > 0):
+            raise ValueError("Weight must be finite and strictly positive")
     for entry_time, exit_time in zip(entry, times):
         if entry_time >= exit_time:
             raise ValueError("Entry time cannot be greater than or equal to exit time")
     for t in sorted(set(times)):
-        at_risk = 0
-        deaths = 0
-        for duration, event, entry_time in zip(times, events, entry):
+        at_risk = 0.0
+        deaths = 0.0
+        for duration, event, entry_time, weight in zip(times, events, entry, weights):
             if duration >= t and entry_time < t:
-                at_risk += 1
+                at_risk += weight
             if duration == t and event == 1:
-                deaths += 1
+                deaths += weight
         rows.append({"time": t, "at_risk": at_risk, "deaths": deaths})
     return pd.DataFrame(rows)
 
-def kaplan_meier(times, events, entry=None):
-    table = event_table(times, events, entry)
+def kaplan_meier(times, events, entry=None, weights=None):
+    table = event_table(times, events, entry, weights=weights)
     survival = 1.0
     rows = []
     for row in table.itertuples(index=False):
